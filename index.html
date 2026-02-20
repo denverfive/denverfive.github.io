@@ -117,20 +117,18 @@ body { background: var(--bg); color: var(--text); font-family: Georgia, serif; m
 .modal-close-btn { position:absolute; top:14px; right:14px; background:rgba(0,0,0,0.5); border:1px solid var(--border); color:var(--muted); width:34px; height:34px; border-radius:50%; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; z-index:10; transition:all 0.2s; }
 .modal-close-btn:hover { border-color:var(--red); color:var(--white); }
 
-/* ── ARTICLE SIDE PANEL ── */
-.art-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1400; opacity:0; pointer-events:none; transition:opacity 0.35s; backdrop-filter:blur(3px); }
-.art-backdrop.open { opacity:1; pointer-events:all; }
-.art-panel { position:fixed; top:0; right:0; width:min(780px, 100vw); height:100vh; background:var(--modal-bg); border-left:2px solid var(--red); z-index:1500; transform:translateX(100%); transition:transform 0.38s cubic-bezier(0.4,0,0.2,1); overflow-y:auto; display:flex; flex-direction:column; }
-.art-panel.open { transform:translateX(0); }
-.art-panel-close { position:sticky; top:0; z-index:10; background:var(--modal-bg); border-bottom:1px solid var(--border); padding:14px 20px; display:flex; align-items:center; gap:14px; }
-.art-panel-close button { background:var(--mid); border:1px solid var(--border); color:var(--muted); padding:8px 16px; border-radius:3px; font-family:monospace; font-size:11px; letter-spacing:1px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:all 0.2s; }
-.art-panel-close button:hover { color:var(--white); border-color:var(--red); }
-.art-panel-close span { font-family:monospace; font-size:11px; color:var(--muted); letter-spacing:1px; }
-.art-panel-img { width:100%; max-height:420px; object-fit:cover; display:block; }
-.art-panel-content { padding:40px; flex:1; }
-.art-panel-content h2 { font-size:32px; color:var(--white); margin:16px 0 12px; line-height:1.2; }
-.art-panel-caption { font-family:monospace; font-size:11px; color:var(--muted); font-style:italic; margin-bottom:18px; padding-bottom:18px; border-bottom:1px solid var(--border); }
-.art-panel-body { font-size:18px; line-height:1.9; color:var(--text); white-space:pre-wrap; }
+/* ── ARTICLE FULL PAGE ── */
+.art-page { position:fixed; inset:0; background:var(--bg); z-index:1500; transform:translateY(100%); transition:transform 0.38s cubic-bezier(0.4,0,0.2,1); overflow-y:auto; display:flex; flex-direction:column; }
+.art-page.open { transform:translateY(0); }
+.art-page-bar { position:sticky; top:0; z-index:10; background:var(--surface); border-bottom:3px solid var(--red); padding:14px 40px; display:flex; align-items:center; gap:16px; }
+.art-page-bar button { background:var(--mid); border:1px solid var(--border); color:var(--muted); padding:9px 18px; border-radius:3px; font-family:monospace; font-size:12px; letter-spacing:1px; cursor:pointer; transition:all 0.2s; }
+.art-page-bar button:hover { color:var(--white); border-color:var(--red); }
+.art-page-bar .station-label { font-family:monospace; font-size:11px; color:var(--muted); letter-spacing:2px; margin-left:auto; }
+.art-page-hero { width:100%; max-height:520px; object-fit:cover; display:block; }
+.art-page-body-wrap { max-width:860px; margin:0 auto; padding:60px 40px; width:100%; }
+.art-page-body-wrap h2 { font-size:42px; font-weight:700; color:var(--white); line-height:1.15; margin:20px 0 14px; }
+.art-page-caption { font-family:monospace; font-size:11px; color:var(--muted); font-style:italic; margin-bottom:20px; padding-bottom:20px; border-bottom:1px solid var(--border); }
+.art-page-text { font-size:20px; line-height:2; color:var(--text); white-space:pre-wrap; }
 
 /* ── COMMENTS ── */
 .comments-section { margin-top:28px; padding-top:24px; border-top:1px solid var(--border); }
@@ -398,12 +396,11 @@ body { background: var(--bg); color: var(--text); font-family: Georgia, serif; m
   </div>
 </div>
 
-<!-- ARTICLE SIDE PANEL -->
-<div class="art-backdrop" id="artBackdrop" onclick="closeArt()"></div>
-<div class="art-panel" id="artPanel">
-  <div class="art-panel-close">
-    <button onclick="closeArt()">← BACK</button>
-    <span>DENVER NEWS STATION 5</span>
+<!-- ARTICLE FULL PAGE -->
+<div class="art-page" id="artPage">
+  <div class="art-page-bar">
+    <button onclick="closeArt()">← BACK TO NEWS</button>
+    <span class="station-label">DENVER NEWS STATION 5</span>
   </div>
   <div id="artPanelInner"></div>
 </div>
@@ -888,27 +885,25 @@ function openArticle(id){
   var a=null; for(var i=0;i<articles.length;i++){if(articles[i].id===id){a=articles[i];break;}}
   if(!a)return;
   if(!a.comments)a.comments=[];
-  var imgB=a.image?'<img class="art-panel-img" src="'+a.image+'" alt="">':'';
-  var cap=a.caption?'<div class="art-panel-caption">'+esc(a.caption)+'</div>':'';
+  var imgB=a.image?'<img class="art-page-hero" src="'+a.image+'" alt="">':'';
+  var cap=a.caption?'<div class="art-page-caption">'+esc(a.caption)+'</div>':'';
   document.getElementById('artPanelInner').innerHTML=
     imgB+
-    '<div class="art-panel-content">'+
+    '<div class="art-page-body-wrap">'+
       '<span class="cat-tag">'+esc(a.category)+'</span>'+
       '<h2>'+esc(a.headline)+'</h2>'+
-      '<div class="art-meta">BY '+esc(a.reporter).toUpperCase()+' | '+fmtDate(a.date)+'</div>'+
+      '<div class="art-meta" style="margin-bottom:20px;">BY '+esc(a.reporter).toUpperCase()+' &nbsp;|&nbsp; '+fmtDate(a.date)+'</div>'+
       cap+
-      '<div class="art-panel-body">'+esc(a.body)+'</div>'+
+      '<div class="art-page-text">'+esc(a.body)+'</div>'+
       renderCommentsHTML(a)+
     '</div>';
-  document.getElementById('artPanel').dataset.artId=id;
-  document.getElementById('artBackdrop').classList.add('open');
-  document.getElementById('artPanel').classList.add('open');
-  document.getElementById('artPanel').scrollTop=0;
+  document.getElementById('artPage').dataset.artId=id;
+  document.getElementById('artPage').classList.add('open');
+  document.getElementById('artPage').scrollTop=0;
   document.body.style.overflow='hidden';
 }
 function closeArt(){
-  document.getElementById('artBackdrop').classList.remove('open');
-  document.getElementById('artPanel').classList.remove('open');
+  document.getElementById('artPage').classList.remove('open');
   document.body.style.overflow='';
 }
 function renderCommentsHTML(a){
@@ -933,7 +928,7 @@ function renderCommentsHTML(a){
   '</div>';
 }
 function submitComment(){
-  var artId=parseInt(document.getElementById('artPanel').dataset.artId);
+  var artId=parseInt(document.getElementById('artPage').dataset.artId);
   var name=document.getElementById('cmtName').value.trim();
   var text=document.getElementById('cmtText').value.trim();
   if(!name||!text){alert('Please enter your name and comment.');return;}
