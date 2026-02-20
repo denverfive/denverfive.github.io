@@ -70,10 +70,41 @@ body { background: var(--bg); color: var(--text); font-family: Georgia, serif; m
 .ticker-edit-bar input { flex:1; background:var(--mid); border:1px solid var(--border); border-radius:3px; color:var(--white); font-family:monospace; font-size:12px; padding:7px 12px; outline:none; }
 .ticker-edit-bar input:focus { border-color:var(--red); }
 
+/* ── SEARCH BAR ── */
+.search-wrap { max-width:1100px; margin:0 auto; padding:24px 20px 0; }
+.search-box { display:flex; gap:0; background:var(--surface); border:2px solid var(--border); border-radius:6px; overflow:hidden; transition:border-color 0.2s; }
+.search-box:focus-within { border-color:var(--red); }
+.search-box input { flex:1; background:none; border:none; color:var(--text); font-family:Georgia,serif; font-size:16px; padding:14px 20px; outline:none; }
+.search-box input::placeholder { color:var(--muted); }
+.search-box button { background:var(--red); border:none; color:#fff; font-family:monospace; font-size:12px; letter-spacing:2px; padding:14px 24px; cursor:pointer; transition:background 0.2s; flex-shrink:0; }
+.search-box button:hover { background:var(--dark-red); }
+.search-clear { background:none; border:none; color:var(--muted); font-family:monospace; font-size:12px; padding:14px 16px; cursor:pointer; transition:color 0.2s; }
+.search-clear:hover { color:var(--white); }
+.search-results-label { font-family:monospace; font-size:11px; letter-spacing:2px; color:var(--muted); margin:20px 0 -8px; }
+
+/* ── REPORTER PROFILE PAGE ── */
+.reporter-page { position:fixed; inset:0; background:var(--bg); z-index:1500; transform:translateY(100%); transition:transform 0.38s cubic-bezier(0.4,0,0.2,1); overflow-y:auto; }
+.reporter-page.open { transform:translateY(0); }
+.reporter-page-bar { position:sticky; top:0; background:var(--surface); border-bottom:3px solid var(--red); padding:14px 40px; display:flex; align-items:center; gap:16px; z-index:10; }
+.reporter-page-bar button { background:var(--mid); border:1px solid var(--border); color:var(--muted); padding:9px 18px; border-radius:3px; font-family:monospace; font-size:12px; letter-spacing:1px; cursor:pointer; transition:all 0.2s; }
+.reporter-page-bar button:hover { color:var(--white); border-color:var(--red); }
+.reporter-hero { background:linear-gradient(135deg,#1a0508,#0a0a0a); padding:60px 40px; text-align:center; border-bottom:1px solid var(--border); }
+.reporter-avatar { width:120px; height:120px; border-radius:50%; object-fit:cover; border:4px solid var(--red); box-shadow:0 0 0 6px rgba(200,16,46,0.2); margin:0 auto 20px; display:block; }
+.reporter-avatar-placeholder { width:120px; height:120px; border-radius:50%; background:linear-gradient(135deg,var(--dark-red),#1a0508); border:4px solid var(--red); display:flex; align-items:center; justify-content:center; font-size:48px; margin:0 auto 20px; }
+.reporter-name { font-size:36px; font-weight:700; color:var(--white); margin-bottom:8px; }
+.reporter-role-badge { font-family:monospace; font-size:11px; letter-spacing:3px; color:var(--red); background:rgba(200,16,46,0.15); border:1px solid rgba(200,16,46,0.3); padding:6px 16px; border-radius:2px; display:inline-block; margin-bottom:16px; }
+.reporter-bio { font-size:15px; color:var(--muted); max-width:600px; margin:0 auto; line-height:1.7; }
+.reporter-stats { display:flex; gap:40px; justify-content:center; padding:28px 40px; border-bottom:1px solid var(--border); background:var(--surface); }
+.reporter-stat { text-align:center; }
+.reporter-stat-num { font-size:32px; font-weight:700; color:var(--white); display:block; }
+.reporter-stat-label { font-family:monospace; font-size:10px; letter-spacing:2px; color:var(--muted); }
+.reporter-link { color:var(--red); cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+.reporter-link:hover { color:var(--gold); }
+.reporter-articles { max-width:1100px; margin:0 auto; padding:40px 20px; }
+.reporter-articles h3 { font-family:monospace; font-size:12px; letter-spacing:3px; color:var(--gold); margin-bottom:24px; padding-bottom:12px; border-bottom:1px solid var(--border); }
+
 /* ── TABS ── */
 .tab { display:none; } .tab.active { display:block; }
-
-/* ── CATEGORY FILTER ── */
 .cat-filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:28px; }
 .cat-filter-btn { background:none; border:1px solid var(--border); color:var(--muted); font-family:monospace; font-size:11px; letter-spacing:1px; padding:6px 14px; border-radius:20px; cursor:pointer; transition:all 0.2s; }
 .cat-filter-btn:hover, .cat-filter-btn.active { background:var(--red); color:#fff; border-color:var(--red); }
@@ -272,6 +303,14 @@ body { background: var(--bg); color: var(--text); font-family: Georgia, serif; m
 
 <!-- HOME TAB -->
 <div id="tab-home" class="tab active">
+  <div class="search-wrap">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search articles by headline, reporter, or keyword..." onkeydown="if(event.key==='Enter')doSearch()" oninput="if(this.value==='')clearSearch()">
+      <button class="search-clear" id="searchClearBtn" onclick="clearSearch()" style="display:none">✕</button>
+      <button onclick="doSearch()">SEARCH</button>
+    </div>
+    <div id="searchResultsLabel" class="search-results-label" style="display:none"></div>
+  </div>
   <div class="homepage">
     <div class="cat-filters" id="catFilters"></div>
     <div id="heroSlot"></div>
@@ -432,6 +471,15 @@ body { background: var(--bg); color: var(--text); font-family: Georgia, serif; m
   </div>
 </div>
 
+<!-- REPORTER PROFILE FULL PAGE -->
+<div class="reporter-page" id="reporterPage">
+  <div class="reporter-page-bar">
+    <button onclick="closeReporter()">← BACK TO NEWS</button>
+    <span style="font-family:monospace;font-size:11px;color:var(--muted);letter-spacing:2px;margin-left:auto;">DENVER NEWS STATION 5</span>
+  </div>
+  <div id="reporterPageInner"></div>
+</div>
+
 <footer class="site-footer">
   <div class="footer-in">
     <div class="footer-logo"><div class="logo-badge sm">5</div> Denver News Station 5</div>
@@ -454,6 +502,7 @@ var editingStaffId = null;
 var activeCategory = 'ALL';
 var pinnedId = null;
 var theme = 'dark';
+var searchQuery = '';
 
 // ══════════════════════════════════════════════
 //  INIT
@@ -661,61 +710,84 @@ function renderHome(){
   renderCatFilters();
   var hero=document.getElementById('heroSlot');
   var grid=document.getElementById('newsGrid');
+  var label=document.getElementById('searchResultsLabel');
 
-  var filtered = activeCategory==='ALL' ? articles : articles.filter(function(a){return a.category===activeCategory;});
+  var filtered = articles;
+
+  // Apply search filter
+  if(searchQuery){
+    filtered = articles.filter(function(a){
+      return a.headline.toLowerCase().indexOf(searchQuery)!==-1 ||
+             a.reporter.toLowerCase().indexOf(searchQuery)!==-1 ||
+             a.body.toLowerCase().indexOf(searchQuery)!==-1 ||
+             a.category.toLowerCase().indexOf(searchQuery)!==-1;
+    });
+    label.style.display='block';
+    label.textContent = filtered.length + ' RESULT' + (filtered.length!==1?'S':'') + ' FOR "' + searchQuery.toUpperCase() + '"';
+    // In search mode, show all as grid, no hero
+    hero.innerHTML='';
+    grid.innerHTML = filtered.length
+      ? filtered.map(function(a){ return buildCard(a); }).join('')
+      : '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--muted);font-family:monospace;">No articles found.</div>';
+    return;
+  } else {
+    label.style.display='none';
+  }
+
+  // Apply category filter
+  if(activeCategory!=='ALL') filtered = filtered.filter(function(a){return a.category===activeCategory;});
 
   if(!filtered.length){ hero.innerHTML=''; grid.innerHTML=''; return; }
 
-  // Hero: pinned article first, else most recent
-  var heroArt = null;
-  if(pinnedId){ heroArt = articles.find(function(a){return a.id===pinnedId;}); }
-  if(!heroArt) heroArt = filtered[0];
+  // Hero: pinned first, else most recent
+  var heroArt=null;
+  if(pinnedId){ heroArt=articles.find(function(a){return a.id===pinnedId;}); }
+  if(!heroArt) heroArt=filtered[0];
+  var rest=filtered.filter(function(a){return a.id!==heroArt.id;});
 
-  var rest = filtered.filter(function(a){return a.id!==heroArt.id;});
-
-  // Build hero
-  var imgB = heroArt.image
-    ? '<div class="hero-img-wrap"><img src="'+heroArt.image+'" alt=""></div>'
-    : '<div class="hero-no-img">5</div>';
-  var pinB = (pinnedId===heroArt.id) ? '<div class="pin-badge">📌 FEATURED</div>' : '';
-  var adminB = '';
+  var imgB=heroArt.image
+    ?'<div class="hero-img-wrap"><img src="'+heroArt.image+'" alt=""></div>'
+    :'<div class="hero-no-img">5</div>';
+  var pinB=(pinnedId===heroArt.id)?'<div class="pin-badge">📌 FEATURED</div>':'';
+  var adminB='';
   if(loggedIn){
-    var pinLbl = (pinnedId===heroArt.id) ? '📌 UNPIN' : '📌 FEATURE';
-    adminB = '<div class="admin-btns">'+
+    var pinLbl=(pinnedId===heroArt.id)?'📌 UNPIN':'📌 FEATURE';
+    adminB='<div class="admin-btns">'+
       '<button class="admin-btn del-btn" onclick="deleteArticle('+heroArt.id+',event)">🗑 DELETE</button>'+
       '<button class="admin-btn pin-btn" onclick="togglePin('+heroArt.id+',event)">'+pinLbl+'</button>'+
     '</div>';
   }
-  hero.innerHTML =
+  hero.innerHTML=
     '<div class="hero-article" onclick="openArticle('+heroArt.id+')">'+
-      pinB + imgB +
+      pinB+imgB+
       '<div class="hero-info">'+
         '<span class="cat-tag">'+esc(heroArt.category)+'</span>'+
         '<h2>'+esc(heroArt.headline)+'</h2>'+
-        '<div class="art-meta">BY '+esc(heroArt.reporter).toUpperCase()+' | '+fmtDate(heroArt.date)+'</div>'+
+        '<div class="art-meta">BY <span class="reporter-link" onclick="event.stopPropagation();openReporter(\''+esc(heroArt.reporter)+'\')">'+esc(heroArt.reporter).toUpperCase()+'</span> &nbsp;|&nbsp; '+fmtDate(heroArt.date)+'</div>'+
         '<p class="hero-excerpt">'+expt(heroArt.body,200)+'</p>'+
         '<button class="read-btn" onclick="event.stopPropagation();openArticle('+heroArt.id+')">READ MORE →</button>'+
         adminB+
       '</div>'+
     '</div>';
 
-  // Grid
-  grid.innerHTML = rest.map(function(a){
-    var img = a.image ? '<img class="card-img" src="'+a.image+'" alt="">' : '<div class="card-no-img">5</div>';
-    var adm = loggedIn
-      ? '<div class="card-admin">'+
-          '<button class="admin-btn del-btn" onclick="deleteArticle('+a.id+',event)">🗑</button>'+
-          '<button class="admin-btn pin-btn" onclick="togglePin('+a.id+',event)">📌</button>'+
-        '</div>'
-      : '';
-    return '<div class="card" onclick="openArticle('+a.id+')">'+adm+img+
-      '<div class="card-body">'+
-        '<span class="cat-tag">'+esc(a.category)+'</span>'+
-        '<h3>'+esc(a.headline)+'</h3>'+
-        '<div class="art-meta">BY '+esc(a.reporter).toUpperCase()+' | '+fmtDate(a.date)+'</div>'+
-        '<p class="card-excerpt">'+expt(a.body,100)+'</p>'+
-      '</div></div>';
-  }).join('');
+  grid.innerHTML=rest.map(function(a){ return buildCard(a); }).join('');
+}
+
+function buildCard(a){
+  var img=a.image?'<img class="card-img" src="'+a.image+'" alt="">':'<div class="card-no-img">5</div>';
+  var adm=loggedIn
+    ?'<div class="card-admin">'+
+        '<button class="admin-btn del-btn" onclick="deleteArticle('+a.id+',event)">🗑</button>'+
+        '<button class="admin-btn pin-btn" onclick="togglePin('+a.id+',event)">📌</button>'+
+      '</div>'
+    :'';
+  return '<div class="card" onclick="openArticle('+a.id+')">'+adm+img+
+    '<div class="card-body">'+
+      '<span class="cat-tag">'+esc(a.category)+'</span>'+
+      '<h3>'+esc(a.headline)+'</h3>'+
+      '<div class="art-meta">BY <span class="reporter-link" onclick="event.stopPropagation();openReporter(\''+esc(a.reporter)+'\')">'+esc(a.reporter).toUpperCase()+'</span> &nbsp;|&nbsp; '+fmtDate(a.date)+'</div>'+
+      '<p class="card-excerpt">'+expt(a.body,100)+'</p>'+
+    '</div></div>';
 }
 
 // ══════════════════════════════════════════════
@@ -892,7 +964,7 @@ function openArticle(id){
     '<div class="art-page-body-wrap">'+
       '<span class="cat-tag">'+esc(a.category)+'</span>'+
       '<h2>'+esc(a.headline)+'</h2>'+
-      '<div class="art-meta" style="margin-bottom:20px;">BY '+esc(a.reporter).toUpperCase()+' &nbsp;|&nbsp; '+fmtDate(a.date)+'</div>'+
+      '<div class="art-meta" style="margin-bottom:20px;">BY <span class="reporter-link" onclick="closeArt();openReporter(\''+esc(a.reporter)+'\')">'+esc(a.reporter).toUpperCase()+'</span> &nbsp;|&nbsp; '+fmtDate(a.date)+'</div>'+
       cap+
       '<div class="art-page-text">'+esc(a.body)+'</div>'+
       renderCommentsHTML(a)+
@@ -982,6 +1054,85 @@ function deleteApp(id){
   if(!confirm('Delete this application?'))return;
   applications=applications.filter(function(a){return a.id!==id;});
   saveApps(); renderApps();
+}
+
+// ══════════════════════════════════════════════
+//  SEARCH
+// ══════════════════════════════════════════════
+function doSearch(){
+  var q = document.getElementById('searchInput').value.trim().toLowerCase();
+  searchQuery = q;
+  if(!q){ clearSearch(); return; }
+  document.getElementById('searchClearBtn').style.display = 'block';
+  activeCategory = 'ALL';
+  renderHome();
+}
+function clearSearch(){
+  searchQuery = '';
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchClearBtn').style.display = 'none';
+  document.getElementById('searchResultsLabel').style.display = 'none';
+  renderHome();
+}
+
+// ══════════════════════════════════════════════
+//  REPORTER PROFILE
+// ══════════════════════════════════════════════
+function openReporter(reporterName){
+  var reporterArts = articles.filter(function(a){ return a.reporter.toLowerCase() === reporterName.toLowerCase(); });
+  // check if this reporter is a staff member
+  var staffMatch = staffMembers.find(function(s){ return s.name.toLowerCase() === reporterName.toLowerCase(); });
+
+  var avatar = staffMatch && staffMatch.image
+    ? '<img class="reporter-avatar" src="'+staffMatch.image+'" alt="'+esc(reporterName)+'">'
+    : '<div class="reporter-avatar-placeholder">✍️</div>';
+  var roleBadge = staffMatch
+    ? '<div class="reporter-role-badge">'+esc(staffMatch.role)+'</div>'
+    : '<div class="reporter-role-badge">REPORTER</div>';
+  var bio = staffMatch && staffMatch.bio
+    ? '<p class="reporter-bio">'+esc(staffMatch.bio)+'</p>'
+    : '';
+
+  var totalComments = reporterArts.reduce(function(sum,a){ return sum + (a.comments ? a.comments.length : 0); }, 0);
+
+  var artCards = reporterArts.length
+    ? reporterArts.map(function(a){
+        var img = a.image ? '<img class="card-img" src="'+a.image+'" alt="">' : '<div class="card-no-img">5</div>';
+        return '<div class="card" onclick="openArticle('+a.id+')" style="cursor:pointer;">'+
+          img+
+          '<div class="card-body">'+
+            '<span class="cat-tag">'+esc(a.category)+'</span>'+
+            '<h3>'+esc(a.headline)+'</h3>'+
+            '<div class="art-meta">'+fmtDate(a.date)+'</div>'+
+            '<p class="card-excerpt">'+expt(a.body,100)+'</p>'+
+          '</div>'+
+        '</div>';
+      }).join('')
+    : '<div style="color:var(--muted);font-family:monospace;font-size:13px;padding:40px;text-align:center;">No articles yet.</div>';
+
+  document.getElementById('reporterPageInner').innerHTML =
+    '<div class="reporter-hero">'+
+      avatar+
+      '<div class="reporter-name">'+esc(reporterName)+'</div>'+
+      roleBadge+
+      bio+
+    '</div>'+
+    '<div class="reporter-stats">'+
+      '<div class="reporter-stat"><span class="reporter-stat-num">'+reporterArts.length+'</span><span class="reporter-stat-label">ARTICLES</span></div>'+
+      '<div class="reporter-stat"><span class="reporter-stat-num">'+totalComments+'</span><span class="reporter-stat-label">COMMENTS</span></div>'+
+    '</div>'+
+    '<div class="reporter-articles">'+
+      '<h3>ALL ARTICLES BY '+esc(reporterName).toUpperCase()+'</h3>'+
+      '<div class="news-grid">'+artCards+'</div>'+
+    '</div>';
+
+  document.getElementById('reporterPage').classList.add('open');
+  document.getElementById('reporterPage').scrollTop = 0;
+  document.body.style.overflow = 'hidden';
+}
+function closeReporter(){
+  document.getElementById('reporterPage').classList.remove('open');
+  document.body.style.overflow = '';
 }
 
 // ══════════════════════════════════════════════
