@@ -202,6 +202,15 @@ body { background: var(--black); color: var(--text); font-family: Georgia, serif
   </nav>
 </div>
 
+<!-- TICKER EDIT BAR (only when logged in) -->
+<div id="tickerEditBar" style="display:none;background:#1a0a0e;border-bottom:1px solid #3a1520;padding:8px 40px;display:none;align-items:center;gap:10px;">
+  <span style="font-family:monospace;font-size:11px;letter-spacing:2px;color:#D4A843;flex-shrink:0;">TICKER TEXT:</span>
+  <input type="text" id="tickerInput" placeholder="Type custom ticker text... (leave blank to use article headlines)"
+    style="flex:1;background:#0A0A0A;border:1px solid #3a1520;border-radius:3px;color:#F4F1EB;font-family:monospace;font-size:12px;padding:7px 12px;outline:none;">
+  <button onclick="saveTicker()" style="background:#C8102E;color:#fff;border:none;font-family:monospace;font-size:11px;letter-spacing:1px;padding:8px 16px;border-radius:3px;cursor:pointer;flex-shrink:0;">UPDATE</button>
+  <button onclick="clearTicker()" style="background:none;color:#888;border:1px solid #2A2A2A;font-family:monospace;font-size:11px;padding:8px 14px;border-radius:3px;cursor:pointer;flex-shrink:0;">RESET TO HEADLINES</button>
+</div>
+
 <!-- HOME TAB -->
 <div id="tab-home" class="tab active">
   <div class="homepage">
@@ -367,6 +376,7 @@ var loggedIn = false;
 window.addEventListener('load', function() {
   loadArticles();
   renderHome();
+  updateTicker();
   startClock();
   setupDrag();
 });
@@ -422,6 +432,10 @@ function doLogin() {
     loggedIn = true;
     closeLogin();
     updateAuthUI();
+    document.getElementById('tickerEditBar').style.display = 'flex';
+    // Pre-fill ticker input with current custom text if any
+    var saved = localStorage.getItem('dns5_ticker');
+    if (saved) document.getElementById('tickerInput').value = saved;
     showTab('write');
   } else {
     document.getElementById('loginErr').style.display = 'block';
@@ -433,6 +447,7 @@ function doLogin() {
 function doLogout() {
   loggedIn = false;
   updateAuthUI();
+  document.getElementById('tickerEditBar').style.display = 'none';
   showTab('home');
 }
 
@@ -616,11 +631,30 @@ function resetApp() {
 // ── TICKER ────────────────────────────────────────────────────────
 function updateTicker() {
   var t = document.getElementById('ticker');
-  if (!articles.length) {
+  var custom = localStorage.getItem('dns5_ticker');
+  if (custom && custom.trim()) {
+    t.innerHTML = custom;
+  } else if (!articles.length) {
     t.innerHTML = 'DENVER NEWS STATION 5 &nbsp;•&nbsp; YOUR LOCAL SOURCE FOR TRUTH &nbsp;•&nbsp; STAY INFORMED, DENVER';
   } else {
     t.innerHTML = articles.map(function(a){ return a.headline; }).join(' &nbsp;•&nbsp; ');
   }
+}
+
+function saveTicker() {
+  var val = document.getElementById('tickerInput').value.trim();
+  if (val) {
+    localStorage.setItem('dns5_ticker', val);
+  } else {
+    localStorage.removeItem('dns5_ticker');
+  }
+  updateTicker();
+}
+
+function clearTicker() {
+  localStorage.removeItem('dns5_ticker');
+  document.getElementById('tickerInput').value = '';
+  updateTicker();
 }
 
 // ── HELPERS ───────────────────────────────────────────────────────
