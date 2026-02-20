@@ -70,6 +70,19 @@ body { background: var(--bg); color: var(--text); font-family: Georgia, serif; m
 .ticker-edit-bar input { flex:1; background:var(--mid); border:1px solid var(--border); border-radius:3px; color:var(--white); font-family:monospace; font-size:12px; padding:7px 12px; outline:none; }
 .ticker-edit-bar input:focus { border-color:var(--red); }
 
+/* ── ANNOUNCEMENT BAR ── */
+.announce-bar { background:var(--gold); color:#000; padding:10px 40px; display:none; align-items:center; gap:12px; position:relative; }
+.announce-bar.visible { display:flex; }
+.announce-text { flex:1; font-family:monospace; font-size:13px; font-weight:bold; letter-spacing:1px; text-align:center; }
+.announce-dismiss { background:rgba(0,0,0,0.15); border:none; color:#000; width:26px; height:26px; border-radius:50%; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:background 0.2s; }
+.announce-dismiss:hover { background:rgba(0,0,0,0.3); }
+.announce-edit-bar { background:#a07c00; border-bottom:1px solid rgba(0,0,0,0.2); padding:8px 40px; display:none; align-items:center; gap:10px; }
+.announce-edit-bar.show { display:flex; }
+.announce-edit-bar input { flex:1; background:rgba(0,0,0,0.2); border:1px solid rgba(0,0,0,0.3); border-radius:3px; color:#fff; font-family:monospace; font-size:12px; padding:7px 12px; outline:none; }
+.announce-edit-bar input::placeholder { color:rgba(255,255,255,0.5); }
+.announce-toggle-btn { background:rgba(0,0,0,0.2); border:1px solid rgba(0,0,0,0.3); color:#fff; font-family:monospace; font-size:11px; letter-spacing:1px; padding:7px 14px; border-radius:3px; cursor:pointer; white-space:nowrap; transition:background 0.2s; }
+.announce-toggle-btn:hover { background:rgba(0,0,0,0.35); }
+
 /* ── SEARCH BAR ── */
 .search-wrap { max-width:1100px; margin:0 auto; padding:24px 20px 0; }
 .search-box { display:flex; gap:0; background:var(--surface); border:2px solid var(--border); border-radius:6px; overflow:hidden; transition:border-color 0.2s; }
@@ -301,6 +314,21 @@ body { background: var(--bg); color: var(--text); font-family: Georgia, serif; m
   <button class="btn-ghost" style="padding:8px 14px;font-size:11px;" onclick="clearTicker()">RESET</button>
 </div>
 
+<!-- ANNOUNCEMENT EDIT BAR (admin only) -->
+<div class="announce-edit-bar" id="announceEditBar">
+  <span style="font-family:monospace;font-size:11px;letter-spacing:2px;color:#fff;flex-shrink:0;">📢 ANNOUNCEMENT:</span>
+  <input type="text" id="announceInput" placeholder="Type your announcement text...">
+  <button class="announce-toggle-btn" onclick="saveAnnounce()">UPDATE</button>
+  <button class="announce-toggle-btn" id="announceToggleBtn" onclick="toggleAnnounce()">SHOW</button>
+  <button class="announce-toggle-btn" onclick="clearAnnounce()">CLEAR</button>
+</div>
+
+<!-- ANNOUNCEMENT BAR (public) -->
+<div class="announce-bar" id="announceBar">
+  <div class="announce-text" id="announceText"></div>
+  <button class="announce-dismiss" onclick="dismissAnnounce()" title="Dismiss">✕</button>
+</div>
+
 <!-- HOME TAB -->
 <div id="tab-home" class="tab active">
   <div class="search-wrap">
@@ -512,9 +540,9 @@ window.addEventListener('load', function() {
   renderHome();
   renderStaff();
   updateTicker();
+  initAnnounce();
   startClock();
   setupDrag();
-  // restore theme
   var t = localStorage.getItem('dns5_theme');
   if (t) { theme = t; applyTheme(); }
 });
@@ -591,6 +619,7 @@ function doLogin() {
     closeLogin();
     updateAuthUI();
     document.getElementById('tickerBar').classList.add('show');
+    document.getElementById('announceEditBar').classList.add('show');
     var saved = localStorage.getItem('dns5_ticker');
     if (saved) document.getElementById('tickerInput').value = saved;
     showTab('write');
@@ -605,6 +634,7 @@ function doLogout() {
   loggedIn = false;
   updateAuthUI();
   document.getElementById('tickerBar').classList.remove('show');
+  document.getElementById('announceEditBar').classList.remove('show');
   renderHome();
   renderStaff();
   showTab('home');
@@ -1154,6 +1184,50 @@ function clearTicker(){
   localStorage.removeItem('dns5_ticker');
   document.getElementById('tickerInput').value='';
   updateTicker();
+}
+
+// ══════════════════════════════════════════════
+//  ANNOUNCEMENT BAR
+// ══════════════════════════════════════════════
+function initAnnounce(){
+  var text = localStorage.getItem('dns5_announce_text') || '';
+  var on   = localStorage.getItem('dns5_announce_on') === 'true';
+  var dismissed = sessionStorage.getItem('dns5_announce_dismissed') === 'true';
+  if(text) document.getElementById('announceInput').value = text;
+  document.getElementById('announceText').textContent = text;
+  // Show public bar if enabled, text exists, and not dismissed this session
+  var bar = document.getElementById('announceBar');
+  if(on && text && !dismissed){ bar.classList.add('visible'); }
+  else { bar.classList.remove('visible'); }
+  // Update admin toggle button label
+  var btn = document.getElementById('announceToggleBtn');
+  if(btn) btn.textContent = on ? 'HIDE' : 'SHOW';
+}
+
+function saveAnnounce(){
+  var text = document.getElementById('announceInput').value.trim();
+  localStorage.setItem('dns5_announce_text', text);
+  document.getElementById('announceText').textContent = text;
+  initAnnounce();
+}
+
+function toggleAnnounce(){
+  var on = localStorage.getItem('dns5_announce_on') === 'true';
+  localStorage.setItem('dns5_announce_on', (!on).toString());
+  sessionStorage.removeItem('dns5_announce_dismissed');
+  initAnnounce();
+}
+
+function clearAnnounce(){
+  localStorage.removeItem('dns5_announce_text');
+  localStorage.removeItem('dns5_announce_on');
+  document.getElementById('announceInput').value = '';
+  initAnnounce();
+}
+
+function dismissAnnounce(){
+  sessionStorage.setItem('dns5_announce_dismissed', 'true');
+  document.getElementById('announceBar').classList.remove('visible');
 }
 
 // ══════════════════════════════════════════════
