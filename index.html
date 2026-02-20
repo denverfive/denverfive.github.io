@@ -110,19 +110,27 @@ body { background: var(--bg); color: var(--text); font-family: Georgia, serif; m
 .card-admin { position:absolute; top:8px; right:8px; display:none; gap:6px; }
 .card:hover .card-admin { display:flex; }
 
-/* ── MODALS ── */
+/* ── MODALS (login/staff) ── */
 .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:2000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
-.overlay.top { align-items:flex-start; padding:40px 20px; overflow-y:auto; z-index:1500; }
 @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 .modal-box { background:var(--modal-bg); border:1px solid var(--border); border-radius:8px; width:100%; max-width:460px; padding:48px 40px; animation:fadeUp 0.22s ease; position:relative; }
-.modal-box.wide { max-width:780px; padding:0; }
 .modal-close-btn { position:absolute; top:14px; right:14px; background:rgba(0,0,0,0.5); border:1px solid var(--border); color:var(--muted); width:34px; height:34px; border-radius:50%; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; z-index:10; transition:all 0.2s; }
 .modal-close-btn:hover { border-color:var(--red); color:var(--white); }
-.modal-img { width:100%; max-height:400px; object-fit:cover; border-radius:8px 8px 0 0; display:block; }
-.modal-content { padding:36px; }
-.modal-content h2 { font-size:28px; color:var(--white); margin:14px 0 10px; line-height:1.25; }
-.modal-caption { font-family:monospace; font-size:11px; color:var(--muted); font-style:italic; margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid var(--border); }
-.modal-body-text { font-size:17px; line-height:1.85; color:var(--text); white-space:pre-wrap; }
+
+/* ── ARTICLE SIDE PANEL ── */
+.art-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1400; opacity:0; pointer-events:none; transition:opacity 0.35s; backdrop-filter:blur(3px); }
+.art-backdrop.open { opacity:1; pointer-events:all; }
+.art-panel { position:fixed; top:0; right:0; width:min(780px, 100vw); height:100vh; background:var(--modal-bg); border-left:2px solid var(--red); z-index:1500; transform:translateX(100%); transition:transform 0.38s cubic-bezier(0.4,0,0.2,1); overflow-y:auto; display:flex; flex-direction:column; }
+.art-panel.open { transform:translateX(0); }
+.art-panel-close { position:sticky; top:0; z-index:10; background:var(--modal-bg); border-bottom:1px solid var(--border); padding:14px 20px; display:flex; align-items:center; gap:14px; }
+.art-panel-close button { background:var(--mid); border:1px solid var(--border); color:var(--muted); padding:8px 16px; border-radius:3px; font-family:monospace; font-size:11px; letter-spacing:1px; cursor:pointer; display:flex; align-items:center; gap:6px; transition:all 0.2s; }
+.art-panel-close button:hover { color:var(--white); border-color:var(--red); }
+.art-panel-close span { font-family:monospace; font-size:11px; color:var(--muted); letter-spacing:1px; }
+.art-panel-img { width:100%; max-height:420px; object-fit:cover; display:block; }
+.art-panel-content { padding:40px; flex:1; }
+.art-panel-content h2 { font-size:32px; color:var(--white); margin:16px 0 12px; line-height:1.2; }
+.art-panel-caption { font-family:monospace; font-size:11px; color:var(--muted); font-style:italic; margin-bottom:18px; padding-bottom:18px; border-bottom:1px solid var(--border); }
+.art-panel-body { font-size:18px; line-height:1.9; color:var(--text); white-space:pre-wrap; }
 
 /* ── COMMENTS ── */
 .comments-section { margin-top:28px; padding-top:24px; border-top:1px solid var(--border); }
@@ -390,12 +398,14 @@ body { background: var(--bg); color: var(--text); font-family: Georgia, serif; m
   </div>
 </div>
 
-<!-- ARTICLE READ -->
-<div class="overlay top" id="artOverlay" style="display:none" onclick="if(event.target===this)closeArt()">
-  <div class="modal-box wide">
-    <button class="modal-close-btn" onclick="closeArt()">✕</button>
-    <div id="artModalContent"></div>
+<!-- ARTICLE SIDE PANEL -->
+<div class="art-backdrop" id="artBackdrop" onclick="closeArt()"></div>
+<div class="art-panel" id="artPanel">
+  <div class="art-panel-close">
+    <button onclick="closeArt()">← BACK</button>
+    <span>DENVER NEWS STATION 5</span>
   </div>
+  <div id="artPanelInner"></div>
 </div>
 
 <!-- ADD/EDIT STAFF MEMBER -->
@@ -428,7 +438,7 @@ body { background: var(--bg); color: var(--text); font-family: Georgia, serif; m
 <footer class="site-footer">
   <div class="footer-in">
     <div class="footer-logo"><div class="logo-badge sm">5</div> Denver News Station 5</div>
-    <p>© 2025 Denver News Station 5. All Rights Reserved.</p>
+    <p>© 2026 Denver News Station 5. All Rights Reserved.</p>
   </div>
 </footer>
 
@@ -869,6 +879,70 @@ function removeStaffImg(){
   staffImgData=null; document.getElementById('staffImgInput').value='';
   document.getElementById('staffImgPreview').style.display='none';
   document.getElementById('staffDropZone').style.display='block';
+}
+
+// ══════════════════════════════════════════════
+//  ARTICLE SIDE PANEL + COMMENTS
+// ══════════════════════════════════════════════
+function openArticle(id){
+  var a=null; for(var i=0;i<articles.length;i++){if(articles[i].id===id){a=articles[i];break;}}
+  if(!a)return;
+  if(!a.comments)a.comments=[];
+  var imgB=a.image?'<img class="art-panel-img" src="'+a.image+'" alt="">':'';
+  var cap=a.caption?'<div class="art-panel-caption">'+esc(a.caption)+'</div>':'';
+  document.getElementById('artPanelInner').innerHTML=
+    imgB+
+    '<div class="art-panel-content">'+
+      '<span class="cat-tag">'+esc(a.category)+'</span>'+
+      '<h2>'+esc(a.headline)+'</h2>'+
+      '<div class="art-meta">BY '+esc(a.reporter).toUpperCase()+' | '+fmtDate(a.date)+'</div>'+
+      cap+
+      '<div class="art-panel-body">'+esc(a.body)+'</div>'+
+      renderCommentsHTML(a)+
+    '</div>';
+  document.getElementById('artPanel').dataset.artId=id;
+  document.getElementById('artBackdrop').classList.add('open');
+  document.getElementById('artPanel').classList.add('open');
+  document.getElementById('artPanel').scrollTop=0;
+  document.body.style.overflow='hidden';
+}
+function closeArt(){
+  document.getElementById('artBackdrop').classList.remove('open');
+  document.getElementById('artPanel').classList.remove('open');
+  document.body.style.overflow='';
+}
+function renderCommentsHTML(a){
+  var comments=a.comments||[];
+  var items=comments.length
+    ? comments.map(function(c){
+        return '<div class="comment-item">'+
+          '<div class="comment-author">'+esc(c.author)+'</div>'+
+          '<div class="comment-text">'+esc(c.text)+'</div>'+
+          '<div class="comment-time">'+fmtDate(c.date)+'</div>'+
+        '</div>';
+      }).join('')
+    : '<div style="color:var(--muted);font-family:monospace;font-size:12px;margin-bottom:16px;">No comments yet. Be the first!</div>';
+  return '<div class="comments-section">'+
+    '<h4>COMMENTS ('+comments.length+')</h4>'+
+    items+
+    '<div class="comment-form">'+
+      '<input type="text" id="cmtName" placeholder="Your name...">'+
+      '<textarea id="cmtText" placeholder="Write a comment..."></textarea>'+
+      '<button class="comment-submit" onclick="submitComment()">POST COMMENT</button>'+
+    '</div>'+
+  '</div>';
+}
+function submitComment(){
+  var artId=parseInt(document.getElementById('artPanel').dataset.artId);
+  var name=document.getElementById('cmtName').value.trim();
+  var text=document.getElementById('cmtText').value.trim();
+  if(!name||!text){alert('Please enter your name and comment.');return;}
+  var a=null; for(var i=0;i<articles.length;i++){if(articles[i].id===artId){a=articles[i];break;}}
+  if(!a)return;
+  if(!a.comments)a.comments=[];
+  a.comments.push({author:name,text:text,date:new Date().toISOString()});
+  saveArticles();
+  openArticle(artId);
 }
 
 // ══════════════════════════════════════════════
