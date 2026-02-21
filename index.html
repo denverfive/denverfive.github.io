@@ -450,10 +450,7 @@ body { background: var(--bg); color: var(--text); font-family: Georgia, serif; m
 
       <div class="asec">
         <h3>YOUR INFO</h3>
-        <div class="form-row">
-          <div class="fg"><label>YOUR NAME *</label><input type="text" id="ctxName" placeholder="Your name..."></div>
-          <div class="fg"><label>DISCORD USERNAME *</label><input type="text" id="ctxDiscord" placeholder="e.g. username#0000 or @username"></div>
-        </div>
+        <div class="fg"><label>DISCORD USERNAME *</label><input type="text" id="ctxDiscord" placeholder="e.g. username#0000 or @username"></div>
       </div>
 
       <div class="asec">
@@ -1293,17 +1290,15 @@ function selectContactType(btn, type) {
 }
 
 function submitContact(){
-  var name    = document.getElementById('ctxName').value.trim();
   var discord = document.getElementById('ctxDiscord').value.trim();
   var subject = document.getElementById('ctxSubject').value.trim();
   var message = document.getElementById('ctxMessage').value.trim();
-  if(!name)    { alert('Please enter your name.'); return; }
   if(!discord) { alert('Please enter your Discord username.'); return; }
   if(!subject) { alert('Please enter a subject.'); return; }
   if(!message) { alert('Please write your message.'); return; }
   contactMessages.unshift({
     id: Date.now(),
-    name: name,
+    name: discord,
     discord: discord,
     type: selectedContactType,
     subject: subject,
@@ -1312,14 +1307,13 @@ function submitContact(){
     read: false
   });
   saveContacts();
-  updateAuthUI(); // refresh unread count in nav
+  updateAuthUI();
   document.getElementById('contactFormWrap').style.display = 'none';
   document.getElementById('contactSuccess').style.display = 'block';
 }
 
 function clearContact(){
-  ['ctxName','ctxDiscord','ctxSubject','ctxMessage'].forEach(function(id){ document.getElementById(id).value=''; });
-  // reset type selection
+  ['ctxDiscord','ctxSubject','ctxMessage'].forEach(function(id){ document.getElementById(id).value=''; });
   selectedContactType = 'General Inquiry';
   document.getElementById('ctxType').value = 'General Inquiry';
   document.querySelectorAll('.contact-type-btn').forEach(function(b,i){ b.classList.toggle('selected', i===0); });
