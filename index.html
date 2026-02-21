@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Denver News Station 5</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="logo.png">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -262,6 +264,37 @@ body { background: var(--bg); color: var(--text); font-family: Georgia, serif; m
 .success-box h3 { font-size:26px; color:var(--white); margin-bottom:12px; }
 .success-box p { color:var(--muted); font-size:14px; max-width:480px; margin:0 auto 28px; line-height:1.7; }
 
+/* ── CONTACT PAGE ── */
+.contact-wrap { max-width:700px; margin:0 auto; padding:50px 20px; }
+.contact-header { display:flex; align-items:center; gap:20px; margin-bottom:50px; padding-bottom:28px; border-bottom:2px solid var(--border); }
+.contact-icon { width:72px; height:72px; background:var(--red); color:#fff; font-size:34px; display:flex; align-items:center; justify-content:center; border-radius:6px; flex-shrink:0; box-shadow:0 0 0 3px var(--dark-red),0 4px 20px rgba(200,16,46,0.3); }
+.contact-header h2 { font-size:28px; color:var(--white); letter-spacing:2px; margin-bottom:6px; }
+.contact-header p { color:var(--muted); font-size:14px; line-height:1.6; }
+.contact-type-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:6px; }
+.contact-type-btn { background:var(--mid); border:2px solid var(--border); border-radius:6px; padding:16px; cursor:pointer; text-align:left; transition:all 0.2s; width:100%; }
+.contact-type-btn:hover { border-color:var(--red); }
+.contact-type-btn.selected { border-color:var(--red); background:rgba(200,16,46,0.1); }
+.ct-icon { font-size:22px; margin-bottom:6px; display:block; }
+.ct-label { font-family:monospace; font-size:11px; letter-spacing:2px; color:var(--red); display:block; margin-bottom:3px; }
+.ct-desc { font-size:12px; color:var(--muted); line-height:1.4; }
+.contact-success { text-align:center; padding:60px 20px; animation:fadeUp 0.3s ease; }
+.contact-success h3 { font-size:24px; color:var(--white); margin-bottom:10px; }
+.contact-success p { color:var(--muted); font-size:14px; line-height:1.7; max-width:400px; margin:0 auto 24px; }
+
+/* ── MESSAGES PANEL (admin) ── */
+.msgs-wrap { max-width:960px; margin:0 auto; padding:50px 20px; }
+.msg-item { background:var(--surface); border:1px solid var(--border); border-left:4px solid var(--border); border-radius:6px; padding:24px; margin-bottom:16px; transition:border-color 0.2s; }
+.msg-item.unread { border-left-color:var(--red); }
+.msg-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; gap:12px; }
+.msg-from { font-size:16px; font-weight:700; color:var(--white); margin-bottom:3px; }
+.msg-discord { font-family:monospace; font-size:11px; color:var(--red); }
+.msg-meta { font-family:monospace; font-size:10px; color:var(--muted); text-align:right; flex-shrink:0; line-height:1.8; }
+.msg-type-badge { font-family:monospace; font-size:9px; letter-spacing:2px; padding:3px 8px; border-radius:2px; display:inline-block; }
+.msg-subject { font-family:monospace; font-size:11px; letter-spacing:1px; color:var(--gold); margin-bottom:10px; }
+.msg-body { font-size:14px; color:var(--text); line-height:1.7; background:var(--mid); padding:14px 16px; border-radius:4px; white-space:pre-wrap; }
+.msg-actions { display:flex; gap:8px; margin-top:14px; }
+.unread-badge { background:var(--red); color:#fff; font-family:monospace; font-size:10px; padding:2px 8px; border-radius:10px; margin-left:8px; }
+
 /* ── FOOTER ── */
 .site-footer { background:var(--surface); border-top:1px solid var(--border); margin-top:60px; padding:28px 40px; transition:background 0.3s; }
 .footer-in { max-width:1100px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; }
@@ -288,7 +321,7 @@ body { background: var(--bg); color: var(--text); font-family: Georgia, serif; m
 <div class="site-header">
   <div class="header-main">
     <div class="header-logo" onclick="showTab('home')" style="cursor:pointer">
-      <div class="logo-badge">5</div>
+      <img src="logo.png" alt="Denver Five Logo" style="width:72px;height:72px;object-fit:contain;flex-shrink:0;border-radius:50%;">
       <div><span class="logo-city">DENVER</span><span class="logo-sub">NEWS STATION</span></div>
     </div>
     <div class="header-date" id="headerDate"></div>
@@ -298,6 +331,7 @@ body { background: var(--bg); color: var(--text); font-family: Georgia, serif; m
       <button class="nav-btn active" onclick="showTab('home')">HOME</button>
       <button class="nav-btn" onclick="showTab('about')">ABOUT</button>
       <button class="nav-btn" onclick="showTab('apply')">APPLY</button>
+      <button class="nav-btn" onclick="showTab('contact')">CONTACT</button>
     </div>
     <div class="nav-right">
       <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme" id="themeBtn">🌙</button>
@@ -402,7 +436,84 @@ body { background: var(--bg); color: var(--text); font-family: Georgia, serif; m
   </div>
 </div>
 
-<!-- WRITE TAB -->
+<!-- CONTACT TAB -->
+<div id="tab-contact" class="tab">
+  <div class="contact-wrap">
+    <div id="contactFormWrap">
+      <div class="contact-header">
+        <div class="contact-icon">📬</div>
+        <div>
+          <h2>CONTACT US</h2>
+          <p>Have a question, tip, complaint, or just want to reach out? Fill out the form below and our team will get back to you via Discord.</p>
+        </div>
+      </div>
+
+      <div class="asec">
+        <h3>YOUR INFO</h3>
+        <div class="form-row">
+          <div class="fg"><label>YOUR NAME *</label><input type="text" id="ctxName" placeholder="Your name..."></div>
+          <div class="fg"><label>DISCORD USERNAME *</label><input type="text" id="ctxDiscord" placeholder="e.g. username#0000 or @username"></div>
+        </div>
+      </div>
+
+      <div class="asec">
+        <h3>REASON FOR CONTACT</h3>
+        <div class="contact-type-grid" id="contactTypeGrid">
+          <button class="contact-type-btn selected" onclick="selectContactType(this,'General Inquiry')">
+            <span class="ct-icon">💬</span>
+            <span class="ct-label">GENERAL INQUIRY</span>
+            <span class="ct-desc">General questions or feedback about our station</span>
+          </button>
+          <button class="contact-type-btn" onclick="selectContactType(this,'News Tip')">
+            <span class="ct-icon">📰</span>
+            <span class="ct-label">NEWS TIP</span>
+            <span class="ct-desc">Submit a tip or lead for a story</span>
+          </button>
+          <button class="contact-type-btn" onclick="selectContactType(this,'Complaint')">
+            <span class="ct-icon">⚠️</span>
+            <span class="ct-label">COMPLAINT</span>
+            <span class="ct-desc">Issue with our reporting or coverage</span>
+          </button>
+          <button class="contact-type-btn" onclick="selectContactType(this,'Partnership')">
+            <span class="ct-icon">🤝</span>
+            <span class="ct-label">PARTNERSHIP</span>
+            <span class="ct-desc">Collaboration or business inquiry</span>
+          </button>
+        </div>
+        <input type="hidden" id="ctxType" value="General Inquiry">
+      </div>
+
+      <div class="asec">
+        <h3>YOUR MESSAGE</h3>
+        <div class="fg"><label>SUBJECT *</label><input type="text" id="ctxSubject" placeholder="Brief subject line..."></div>
+        <div class="fg"><label>MESSAGE *</label><textarea id="ctxMessage" rows="7" placeholder="Write your message here... Be as detailed as possible."></textarea></div>
+      </div>
+
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button class="btn-red" onclick="submitContact()">SEND MESSAGE</button>
+        <button class="btn-ghost" onclick="clearContact()">CLEAR</button>
+      </div>
+    </div>
+
+    <div id="contactSuccess" class="contact-success" style="display:none">
+      <div class="success-icon" style="width:80px;height:80px;background:rgba(40,167,69,0.12);border:2px solid rgba(40,167,69,0.4);color:#6dcf7e;font-size:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;">✓</div>
+      <h3>MESSAGE SENT!</h3>
+      <p>Thanks for reaching out to Denver News Station 5. We'll get back to you via Discord as soon as possible.</p>
+      <button class="btn-ghost" onclick="resetContact()">SEND ANOTHER</button>
+    </div>
+  </div>
+</div>
+
+<!-- MESSAGES TAB (admin only) -->
+<div id="tab-messages" class="tab">
+  <div class="msgs-wrap">
+    <div class="sec-title" style="display:flex;align-items:center;gap:12px;">
+      CONTACT MESSAGES
+      <span id="unreadBadge" class="unread-badge" style="display:none"></span>
+    </div>
+    <div id="messagesList"></div>
+  </div>
+</div>
 <div id="tab-write" class="tab">
   <div class="write-wrap">
     <div class="sec-title">WRITE AN ARTICLE</div>
@@ -523,6 +634,7 @@ var CREDS = { user: 'Bugatti#1', pass: 'Bugatti#123' };
 var articles = [];
 var staffMembers = [];
 var applications = [];
+var contactMessages = [];
 var imgData = null;
 var staffImgData = null;
 var loggedIn = false;
@@ -551,11 +663,13 @@ function load() {
   try { articles = JSON.parse(localStorage.getItem('dns5_articles') || '[]'); } catch(e){ articles=[]; }
   try { staffMembers = JSON.parse(localStorage.getItem('dns5_staff') || '[]'); } catch(e){ staffMembers=[]; }
   try { applications = JSON.parse(localStorage.getItem('dns5_apps') || '[]'); } catch(e){ applications=[]; }
+  try { contactMessages = JSON.parse(localStorage.getItem('dns5_contacts') || '[]'); } catch(e){ contactMessages=[]; }
   try { pinnedId = JSON.parse(localStorage.getItem('dns5_pinned') || 'null'); } catch(e){ pinnedId=null; }
 }
 function saveArticles() { try{ localStorage.setItem('dns5_articles', JSON.stringify(articles)); }catch(e){ alert('Storage full!'); } }
 function saveStaff()    { try{ localStorage.setItem('dns5_staff', JSON.stringify(staffMembers)); }catch(e){} }
 function saveApps()     { try{ localStorage.setItem('dns5_apps', JSON.stringify(applications)); }catch(e){} }
+function saveContacts() { try{ localStorage.setItem('dns5_contacts', JSON.stringify(contactMessages)); }catch(e){} }
 function savePinned()   { localStorage.setItem('dns5_pinned', JSON.stringify(pinnedId)); }
 
 // ══════════════════════════════════════════════
@@ -589,14 +703,14 @@ function applyTheme() {
 // ══════════════════════════════════════════════
 function showTab(name) {
   if (name === 'write' && !loggedIn) { openLogin(); return; }
-  if (name === 'apps' && !loggedIn) return;
+  if ((name === 'apps' || name === 'messages') && !loggedIn) return;
   document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
   document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.remove('active'); });
   document.getElementById('tab-' + name).classList.add('active');
-  // highlight correct nav btn
-  var map = { home:0, about:1, apply:2 };
+  var map = { home:0, about:1, apply:2, contact:3 };
   if (map[name] !== undefined) document.querySelectorAll('.nav-btn')[map[name]].classList.add('active');
   if (name === 'apps') renderApps();
+  if (name === 'messages') renderMessages();
 }
 
 // ══════════════════════════════════════════════
@@ -647,6 +761,7 @@ function updateAuthUI() {
       '<span class="logged-label">● SIGNED IN</span>' +
       ' &nbsp;<button class="nav-btn" onclick="showTab(\'write\')" style="color:var(--gold);">WRITE</button>' +
       '<button class="nav-btn" onclick="showTab(\'apps\')" style="color:var(--gold);">APPLICATIONS</button>' +
+      '<button class="nav-btn" onclick="showTab(\'messages\')" style="color:var(--gold);">MESSAGES' + getUnreadLabel() + '</button>' +
       '<button class="signout-btn" onclick="doLogout()">SIGN OUT</button>';
   } else {
     area.innerHTML = '<button class="signin-btn" onclick="openLogin()">SIGN IN</button>';
@@ -1163,6 +1278,122 @@ function openReporter(reporterName){
 function closeReporter(){
   document.getElementById('reporterPage').classList.remove('open');
   document.body.style.overflow = '';
+}
+
+// ══════════════════════════════════════════════
+//  CONTACT FORM
+// ══════════════════════════════════════════════
+var selectedContactType = 'General Inquiry';
+
+function selectContactType(btn, type) {
+  selectedContactType = type;
+  document.getElementById('ctxType').value = type;
+  document.querySelectorAll('.contact-type-btn').forEach(function(b){ b.classList.remove('selected'); });
+  btn.classList.add('selected');
+}
+
+function submitContact(){
+  var name    = document.getElementById('ctxName').value.trim();
+  var discord = document.getElementById('ctxDiscord').value.trim();
+  var subject = document.getElementById('ctxSubject').value.trim();
+  var message = document.getElementById('ctxMessage').value.trim();
+  if(!name)    { alert('Please enter your name.'); return; }
+  if(!discord) { alert('Please enter your Discord username.'); return; }
+  if(!subject) { alert('Please enter a subject.'); return; }
+  if(!message) { alert('Please write your message.'); return; }
+  contactMessages.unshift({
+    id: Date.now(),
+    name: name,
+    discord: discord,
+    type: selectedContactType,
+    subject: subject,
+    message: message,
+    date: new Date().toISOString(),
+    read: false
+  });
+  saveContacts();
+  updateAuthUI(); // refresh unread count in nav
+  document.getElementById('contactFormWrap').style.display = 'none';
+  document.getElementById('contactSuccess').style.display = 'block';
+}
+
+function clearContact(){
+  ['ctxName','ctxDiscord','ctxSubject','ctxMessage'].forEach(function(id){ document.getElementById(id).value=''; });
+  // reset type selection
+  selectedContactType = 'General Inquiry';
+  document.getElementById('ctxType').value = 'General Inquiry';
+  document.querySelectorAll('.contact-type-btn').forEach(function(b,i){ b.classList.toggle('selected', i===0); });
+}
+
+function resetContact(){
+  clearContact();
+  document.getElementById('contactFormWrap').style.display = 'block';
+  document.getElementById('contactSuccess').style.display = 'none';
+}
+
+// ══════════════════════════════════════════════
+//  MESSAGES PANEL
+// ══════════════════════════════════════════════
+function getUnreadCount(){ return contactMessages.filter(function(m){ return !m.read; }).length; }
+function getUnreadLabel(){
+  var n = getUnreadCount();
+  return n > 0 ? ' <span style="background:var(--red);color:#fff;font-family:monospace;font-size:10px;padding:1px 7px;border-radius:10px;margin-left:4px;">'+n+'</span>' : '';
+}
+
+var typeColors = {
+  'General Inquiry': 'rgba(100,160,255,0.2);color:#6ab4ff',
+  'News Tip':        'rgba(40,167,69,0.2);color:#6dcf7e',
+  'Complaint':       'rgba(200,16,46,0.2);color:#e87985',
+  'Partnership':     'rgba(212,168,67,0.2);color:#D4A843'
+};
+
+function renderMessages(){
+  var el = document.getElementById('messagesList');
+  var badge = document.getElementById('unreadBadge');
+  var unread = getUnreadCount();
+  if(unread > 0){ badge.style.display='inline-block'; badge.textContent = unread + ' NEW'; }
+  else { badge.style.display='none'; }
+
+  if(!contactMessages.length){
+    el.innerHTML='<div class="no-apps">No messages yet.</div>';
+    return;
+  }
+
+  el.innerHTML = contactMessages.map(function(m){
+    var colorStyle = typeColors[m.type] || 'rgba(128,128,128,0.2);color:#aaa';
+    var parts = colorStyle.split(';');
+    var bgStyle = parts[0]; var fgStyle = parts[1] || 'color:#aaa';
+    var unreadMark = !m.read ? '<span style="display:inline-block;width:8px;height:8px;background:var(--red);border-radius:50%;margin-right:8px;"></span>' : '';
+    return '<div class="msg-item'+(m.read?'':' unread')+'" id="msg-'+m.id+'">'+
+      '<div class="msg-header">'+
+        '<div>'+
+          '<div class="msg-from">'+unreadMark+esc(m.name)+'</div>'+
+          '<div class="msg-discord">'+esc(m.discord)+'</div>'+
+        '</div>'+
+        '<div class="msg-meta">'+
+          '<span class="msg-type-badge" style="background:'+bgStyle+';'+fgStyle+';">'+esc(m.type).toUpperCase()+'</span><br>'+
+          fmtDate(m.date)+
+        '</div>'+
+      '</div>'+
+      '<div class="msg-subject">RE: '+esc(m.subject)+'</div>'+
+      '<div class="msg-body">'+esc(m.message)+'</div>'+
+      '<div class="msg-actions">'+
+        (!m.read ? '<button class="admin-btn pin-btn" onclick="markRead('+m.id+')">✓ Mark Read</button>' : '<span style="font-family:monospace;font-size:11px;color:var(--muted);">✓ Read</span>')+
+        ' &nbsp;<button class="admin-btn del-btn" onclick="deleteMessage('+m.id+')">🗑 Delete</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function markRead(id){
+  var m = contactMessages.find(function(x){ return x.id===id; });
+  if(m){ m.read=true; saveContacts(); updateAuthUI(); renderMessages(); }
+}
+
+function deleteMessage(id){
+  if(!confirm('Delete this message?')) return;
+  contactMessages = contactMessages.filter(function(m){ return m.id!==id; });
+  saveContacts(); updateAuthUI(); renderMessages();
 }
 
 // ══════════════════════════════════════════════
