@@ -628,6 +628,7 @@ body { background: var(--bg); color: var(--text); font-family: Georgia, serif; m
 //  STATE
 // ══════════════════════════════════════════════
 var CREDS = { user: 'Bugatti#1', pass: 'Bugatti#123' };
+var CREDS2 = { user: 'Ekam#1', pass: 'Ekam#123' };
 var articles = [];
 var staffMembers = [];
 var applications = [];
@@ -635,6 +636,7 @@ var contactMessages = [];
 var imgData = null;
 var staffImgData = null;
 var loggedIn = false;
+var isAdmin = false;
 var editingStaffId = null;
 var activeCategory = 'ALL';
 var pinnedId = null;
@@ -725,14 +727,21 @@ function closeLogin() { document.getElementById('loginOverlay').style.display = 
 function doLogin() {
   var u = document.getElementById('loginUser').value.trim();
   var p = document.getElementById('loginPass').value;
-  if (u === CREDS.user && p === CREDS.pass) {
+  var matched = false;
+  if (u === CREDS.user && p === CREDS.pass) { matched = true; isAdmin = true; }
+  else if (u === CREDS2.user && p === CREDS2.pass) { matched = true; isAdmin = false; }
+
+  if (matched) {
     loggedIn = true;
     closeLogin();
     updateAuthUI();
-    document.getElementById('tickerBar').classList.add('show');
-    document.getElementById('announceEditBar').classList.add('show');
-    var saved = localStorage.getItem('dns5_ticker');
-    if (saved) document.getElementById('tickerInput').value = saved;
+    // Only full admin sees ticker + announcement editor
+    if (isAdmin) {
+      document.getElementById('tickerBar').classList.add('show');
+      document.getElementById('announceEditBar').classList.add('show');
+      var saved = localStorage.getItem('dns5_ticker');
+      if (saved) document.getElementById('tickerInput').value = saved;
+    }
     showTab('write');
   } else {
     document.getElementById('loginErr').style.display = 'block';
@@ -743,6 +752,7 @@ function doLogin() {
 
 function doLogout() {
   loggedIn = false;
+  isAdmin = false;
   updateAuthUI();
   document.getElementById('tickerBar').classList.remove('show');
   document.getElementById('announceEditBar').classList.remove('show');
@@ -754,8 +764,9 @@ function doLogout() {
 function updateAuthUI() {
   var area = document.getElementById('navAuthArea');
   if (loggedIn) {
+    var who = isAdmin ? 'Bugatti#1' : 'Ekam#1';
     area.innerHTML =
-      '<span class="logged-label">● SIGNED IN</span>' +
+      '<span class="logged-label">● ' + who + '</span>' +
       ' &nbsp;<button class="nav-btn" onclick="showTab(\'write\')" style="color:var(--gold);">WRITE</button>' +
       '<button class="nav-btn" onclick="showTab(\'apps\')" style="color:var(--gold);">APPLICATIONS</button>' +
       '<button class="nav-btn" onclick="showTab(\'messages\')" style="color:var(--gold);">MESSAGES' + getUnreadLabel() + '</button>' +
