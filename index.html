@@ -295,6 +295,30 @@ body { background: var(--bg); color: var(--text); font-family: Georgia, serif; m
 .msg-actions { display:flex; gap:8px; margin-top:14px; }
 .unread-badge { background:var(--red); color:#fff; font-family:monospace; font-size:10px; padding:2px 8px; border-radius:10px; margin-left:8px; }
 
+/* ── ACTIVITY LOGS ── */
+.logs-wrap { max-width:960px; margin:0 auto; padding:50px 20px; }
+.log-filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px; }
+.log-filter-btn { background:none; border:1px solid var(--border); color:var(--muted); font-family:monospace; font-size:11px; letter-spacing:1px; padding:5px 14px; border-radius:20px; cursor:pointer; transition:all 0.2s; }
+.log-filter-btn:hover,.log-filter-btn.active { background:var(--red); color:#fff; border-color:var(--red); }
+.log-item { display:flex; align-items:flex-start; gap:16px; padding:14px 18px; background:var(--surface); border:1px solid var(--border); border-radius:6px; margin-bottom:10px; transition:border-color 0.2s; }
+.log-item:hover { border-color:var(--border); }
+.log-icon { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; margin-top:2px; }
+.log-icon.login  { background:rgba(100,160,255,0.15); }
+.log-icon.article { background:rgba(40,167,69,0.15); }
+.log-icon.delete { background:rgba(200,16,46,0.15); }
+.log-icon.app    { background:rgba(212,168,67,0.15); }
+.log-icon.msg    { background:rgba(180,100,255,0.15); }
+.log-icon.staff  { background:rgba(100,200,200,0.15); }
+.log-icon.pin    { background:rgba(212,168,67,0.15); }
+.log-icon.announce { background:rgba(255,165,0,0.15); }
+.log-body { flex:1; }
+.log-text { font-size:14px; color:var(--text); line-height:1.5; margin-bottom:4px; }
+.log-text strong { color:var(--white); }
+.log-sub { font-family:monospace; font-size:11px; color:var(--muted); }
+.log-time { font-family:monospace; font-size:11px; color:var(--muted); flex-shrink:0; white-space:nowrap; }
+.log-location { display:inline-block; background:rgba(100,160,255,0.1); border:1px solid rgba(100,160,255,0.25); color:#6ab4ff; font-family:monospace; font-size:10px; padding:2px 8px; border-radius:10px; margin-left:8px; }
+.no-logs { text-align:center; padding:60px 20px; color:var(--muted); font-family:monospace; font-size:13px; }
+
 /* ── FOOTER ── */
 .site-footer { background:var(--surface); border-top:1px solid var(--border); margin-top:60px; padding:28px 40px; transition:background 0.3s; }
 .footer-in { max-width:1100px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; }
@@ -554,6 +578,25 @@ body { background: var(--bg); color: var(--text); font-family: Georgia, serif; m
   </div>
 </div>
 
+<!-- LOGS TAB (admin only) -->
+<div id="tab-logs" class="tab">
+  <div class="logs-wrap">
+    <div class="sec-title">ACTIVITY LOG</div>
+    <div class="log-filters">
+      <button class="log-filter-btn active" onclick="setLogFilter('ALL',this)">ALL</button>
+      <button class="log-filter-btn" onclick="setLogFilter('login',this)">🔐 LOGINS</button>
+      <button class="log-filter-btn" onclick="setLogFilter('article',this)">📝 ARTICLES</button>
+      <button class="log-filter-btn" onclick="setLogFilter('app',this)">📋 APPLICATIONS</button>
+      <button class="log-filter-btn" onclick="setLogFilter('msg',this)">💬 MESSAGES</button>
+      <button class="log-filter-btn" onclick="setLogFilter('staff',this)">👤 STAFF</button>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+      <button class="btn-ghost" style="font-size:11px;padding:8px 16px;" onclick="clearLogs()">🗑 Clear All Logs</button>
+    </div>
+    <div id="logsList"></div>
+  </div>
+</div>
+
 <!-- ── MODALS ── -->
 
 <!-- LOGIN -->
@@ -633,15 +676,18 @@ var articles = [];
 var staffMembers = [];
 var applications = [];
 var contactMessages = [];
+var activityLogs = [];
 var imgData = null;
 var staffImgData = null;
 var loggedIn = false;
 var isAdmin = false;
+var currentUser = '';
 var editingStaffId = null;
 var activeCategory = 'ALL';
 var pinnedId = null;
 var theme = 'dark';
 var searchQuery = '';
+var activeLogFilter = 'ALL';
 
 // ══════════════════════════════════════════════
 //  INIT
@@ -663,12 +709,14 @@ function load() {
   try { staffMembers = JSON.parse(localStorage.getItem('dns5_staff') || '[]'); } catch(e){ staffMembers=[]; }
   try { applications = JSON.parse(localStorage.getItem('dns5_apps') || '[]'); } catch(e){ applications=[]; }
   try { contactMessages = JSON.parse(localStorage.getItem('dns5_contacts') || '[]'); } catch(e){ contactMessages=[]; }
+  try { activityLogs = JSON.parse(localStorage.getItem('dns5_logs') || '[]'); } catch(e){ activityLogs=[]; }
   try { pinnedId = JSON.parse(localStorage.getItem('dns5_pinned') || 'null'); } catch(e){ pinnedId=null; }
 }
 function saveArticles() { try{ localStorage.setItem('dns5_articles', JSON.stringify(articles)); }catch(e){ alert('Storage full!'); } }
 function saveStaff()    { try{ localStorage.setItem('dns5_staff', JSON.stringify(staffMembers)); }catch(e){} }
 function saveApps()     { try{ localStorage.setItem('dns5_apps', JSON.stringify(applications)); }catch(e){} }
 function saveContacts() { try{ localStorage.setItem('dns5_contacts', JSON.stringify(contactMessages)); }catch(e){} }
+function saveLogs()     { try{ localStorage.setItem('dns5_logs', JSON.stringify(activityLogs.slice(0,200))); }catch(e){} }
 function savePinned()   { localStorage.setItem('dns5_pinned', JSON.stringify(pinnedId)); }
 
 // ══════════════════════════════════════════════
@@ -702,7 +750,7 @@ function applyTheme() {
 // ══════════════════════════════════════════════
 function showTab(name) {
   if (name === 'write' && !loggedIn) { openLogin(); return; }
-  if ((name === 'apps' || name === 'messages') && !loggedIn) return;
+  if ((name === 'apps' || name === 'messages' || name === 'logs') && !loggedIn) return;
   document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
   document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.remove('active'); });
   document.getElementById('tab-' + name).classList.add('active');
@@ -710,6 +758,7 @@ function showTab(name) {
   if (map[name] !== undefined) document.querySelectorAll('.nav-btn')[map[name]].classList.add('active');
   if (name === 'apps') renderApps();
   if (name === 'messages') renderMessages();
+  if (name === 'logs') renderLogs();
 }
 
 // ══════════════════════════════════════════════
@@ -728,20 +777,30 @@ function doLogin() {
   var u = document.getElementById('loginUser').value.trim();
   var p = document.getElementById('loginPass').value;
   var matched = false;
-  if (u === CREDS.user && p === CREDS.pass) { matched = true; isAdmin = true; }
-  else if (u === CREDS2.user && p === CREDS2.pass) { matched = true; isAdmin = false; }
+  if (u === CREDS.user && p === CREDS.pass) { matched = true; isAdmin = true; currentUser = CREDS.user; }
+  else if (u === CREDS2.user && p === CREDS2.pass) { matched = true; isAdmin = false; currentUser = CREDS2.user; }
 
   if (matched) {
     loggedIn = true;
     closeLogin();
     updateAuthUI();
-    // Only full admin sees ticker + announcement editor
     if (isAdmin) {
       document.getElementById('tickerBar').classList.add('show');
       document.getElementById('announceEditBar').classList.add('show');
       var saved = localStorage.getItem('dns5_ticker');
       if (saved) document.getElementById('tickerInput').value = saved;
     }
+    // Fetch IP location then log login
+    fetch('https://ipapi.co/json/')
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        var loc = (d.city && d.country_name) ? d.city + ', ' + d.country_name : (d.country_name || 'Unknown');
+        var ip = d.ip || 'Unknown IP';
+        addLog('login', currentUser, 'signed in', null, { location: loc, ip: ip });
+      })
+      .catch(function(){
+        addLog('login', currentUser, 'signed in', null, { location: 'Unknown', ip: 'Unknown' });
+      });
     showTab('write');
   } else {
     document.getElementById('loginErr').style.display = 'block';
@@ -751,8 +810,10 @@ function doLogin() {
 }
 
 function doLogout() {
+  addLog('login', currentUser, 'signed out', null, null);
   loggedIn = false;
   isAdmin = false;
+  currentUser = '';
   updateAuthUI();
   document.getElementById('tickerBar').classList.remove('show');
   document.getElementById('announceEditBar').classList.remove('show');
@@ -770,6 +831,7 @@ function updateAuthUI() {
       ' &nbsp;<button class="nav-btn" onclick="showTab(\'write\')" style="color:var(--gold);">WRITE</button>' +
       '<button class="nav-btn" onclick="showTab(\'apps\')" style="color:var(--gold);">APPLICATIONS</button>' +
       '<button class="nav-btn" onclick="showTab(\'messages\')" style="color:var(--gold);">MESSAGES' + getUnreadLabel() + '</button>' +
+      '<button class="nav-btn" onclick="showTab(\'logs\')" style="color:var(--gold);">LOGS</button>' +
       '<button class="signout-btn" onclick="doLogout()">SIGN OUT</button>';
   } else {
     area.innerHTML = '<button class="signin-btn" onclick="openLogin()">SIGN IN</button>';
@@ -809,6 +871,7 @@ function publish(){
   if(!body){showPubMsg('Please write the article body.',false);return;}
   articles.unshift({id:Date.now(),headline:headline,reporter:reporter,category:category,caption:caption,body:body,image:imgData,date:new Date().toISOString(),comments:[]});
   saveArticles(); renderHome(); updateTicker(); clearForm();
+  addLog('article', currentUser, 'published article', '"' + headline + '"', null);
   showPubMsg('✓ Article published!',true);
   setTimeout(function(){showTab('home');},1200);
 }
@@ -830,14 +893,21 @@ function showPubMsg(txt,ok){
 function deleteArticle(id,e){
   if(e)e.stopPropagation();
   if(!confirm('Delete this article? Cannot be undone.'))return;
+  var a = articles.find(function(x){return x.id===id;});
+  var title = a ? a.headline : 'article';
   articles=articles.filter(function(a){return a.id!==id;});
   if(pinnedId===id){pinnedId=null;savePinned();}
   saveArticles(); updateTicker(); renderHome();
+  addLog('delete', currentUser, 'deleted article', '"' + title + '"', null);
 }
 function togglePin(id,e){
   if(e)e.stopPropagation();
-  pinnedId = (pinnedId===id) ? null : id;
+  var a = articles.find(function(x){return x.id===id;});
+  var title = a ? a.headline : 'article';
+  var wasPinned = pinnedId === id;
+  pinnedId = wasPinned ? null : id;
   savePinned(); renderHome();
+  addLog('pin', currentUser, wasPinned ? 'unpinned article' : 'featured article', '"' + title + '"', null);
 }
 
 // ══════════════════════════════════════════════
@@ -1079,11 +1149,15 @@ function saveStaffMember(){
     staffMembers.push({id:Date.now(),name:name,role:role,bio:bio,image:staffImgData});
   }
   saveStaff(); closeStaffModal(); renderStaff();
+  addLog('staff', currentUser, editingStaffId ? 'edited staff member' : 'added staff member', name, null);
 }
 function deleteStaff(id){
   if(!confirm('Remove this team member?'))return;
+  var s = staffMembers.find(function(x){return x.id===id;});
+  var name = s ? s.name : 'member';
   staffMembers=staffMembers.filter(function(s){return s.id!==id;});
   saveStaff(); renderStaff();
+  addLog('staff', currentUser, 'removed staff member', name, null);
 }
 
 function handleStaffImg(e){ var f=e.target.files[0]; if(f) readStaffImg(f); }
@@ -1205,8 +1279,11 @@ function renderApps(){
 }
 function deleteApp(id){
   if(!confirm('Delete this application?'))return;
+  var a = applications.find(function(x){return x.id===id;});
+  var who = a ? a.discord : 'applicant';
   applications=applications.filter(function(a){return a.id!==id;});
   saveApps(); renderApps();
+  addLog('app', currentUser, 'deleted application from', who, null);
 }
 
 // ══════════════════════════════════════════════
@@ -1392,13 +1469,95 @@ function renderMessages(){
 
 function markRead(id){
   var m = contactMessages.find(function(x){ return x.id===id; });
-  if(m){ m.read=true; saveContacts(); updateAuthUI(); renderMessages(); }
+  if(m){ m.read=true; saveContacts(); updateAuthUI(); renderMessages();
+    addLog('msg', currentUser, 'read message from', m.discord, null);
+  }
 }
 
 function deleteMessage(id){
   if(!confirm('Delete this message?')) return;
+  var m = contactMessages.find(function(x){return x.id===id;});
+  var who = m ? m.discord : 'user';
   contactMessages = contactMessages.filter(function(m){ return m.id!==id; });
   saveContacts(); updateAuthUI(); renderMessages();
+  addLog('msg', currentUser, 'deleted message from', who, null);
+}
+
+// ══════════════════════════════════════════════
+//  ACTIVITY LOGS
+// ══════════════════════════════════════════════
+var LOG_ICONS = {
+  login:    { icon: '🔐', cls: 'login' },
+  article:  { icon: '📝', cls: 'article' },
+  delete:   { icon: '🗑️', cls: 'delete' },
+  app:      { icon: '📋', cls: 'app' },
+  msg:      { icon: '💬', cls: 'msg' },
+  staff:    { icon: '👤', cls: 'staff' },
+  pin:      { icon: '📌', cls: 'pin' },
+  announce: { icon: '📢', cls: 'announce' }
+};
+
+function addLog(type, user, action, detail, meta) {
+  var entry = {
+    id: Date.now() + Math.random(),
+    type: type,
+    user: user || 'Unknown',
+    action: action,
+    detail: detail || null,
+    meta: meta || null,
+    date: new Date().toISOString()
+  };
+  activityLogs.unshift(entry);
+  saveLogs();
+}
+
+var activeLogFilter = 'ALL';
+
+function setLogFilter(filter, btn) {
+  activeLogFilter = filter;
+  document.querySelectorAll('.log-filter-btn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  renderLogs();
+}
+
+function renderLogs() {
+  var el = document.getElementById('logsList');
+  var filtered = activeLogFilter === 'ALL'
+    ? activityLogs
+    : activityLogs.filter(function(l){ return l.type === activeLogFilter; });
+
+  if (!filtered.length) {
+    el.innerHTML = '<div class="no-logs">No activity logged yet.</div>';
+    return;
+  }
+
+  el.innerHTML = filtered.map(function(l) {
+    var iconInfo = LOG_ICONS[l.type] || { icon: '•', cls: 'login' };
+    var detailStr = l.detail ? ' <span style="color:var(--gold);">' + esc(l.detail) + '</span>' : '';
+    var locationStr = '';
+    if (l.meta && l.meta.location && l.type === 'login') {
+      locationStr = '<span class="log-location">📍 ' + esc(l.meta.location) + '</span>';
+    }
+    var subStr = '';
+    if (l.meta && l.meta.ip && l.type === 'login') {
+      subStr = 'IP: ' + esc(l.meta.ip);
+    }
+    return '<div class="log-item">' +
+      '<div class="log-icon ' + iconInfo.cls + '">' + iconInfo.icon + '</div>' +
+      '<div class="log-body">' +
+        '<div class="log-text"><strong>' + esc(l.user) + '</strong> ' + esc(l.action) + detailStr + locationStr + '</div>' +
+        (subStr ? '<div class="log-sub">' + subStr + '</div>' : '') +
+      '</div>' +
+      '<div class="log-time">' + fmtDate(l.date) + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function clearLogs() {
+  if (!confirm('Clear all activity logs? This cannot be undone.')) return;
+  activityLogs = [];
+  saveLogs();
+  renderLogs();
 }
 
 // ══════════════════════════════════════════════
@@ -1444,6 +1603,7 @@ function saveAnnounce(){
   var text = document.getElementById('announceInput').value.trim();
   localStorage.setItem('dns5_announce_text', text);
   document.getElementById('announceText').textContent = text;
+  addLog('announce', currentUser, 'updated announcement', '"' + text + '"', null);
   initAnnounce();
 }
 
@@ -1451,6 +1611,7 @@ function toggleAnnounce(){
   var on = localStorage.getItem('dns5_announce_on') === 'true';
   localStorage.setItem('dns5_announce_on', (!on).toString());
   sessionStorage.removeItem('dns5_announce_dismissed');
+  addLog('announce', currentUser, on ? 'hid announcement' : 'showed announcement', null, null);
   initAnnounce();
 }
 
